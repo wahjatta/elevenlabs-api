@@ -1,5 +1,16 @@
 export default async function handler(req, res) {
+
+  // ✅ CORS (fixes Wix "Failed to fetch")
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
+    // Support GET + POST
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -23,6 +34,7 @@ export default async function handler(req, res) {
       }
     );
 
+    // Show real error if ElevenLabs fails
     if (!response.ok) {
       const err = await response.text();
       return res.status(500).json({
@@ -31,6 +43,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Convert to audio buffer
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
