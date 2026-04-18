@@ -1,8 +1,6 @@
 export default async function handler(req, res) {
   try {
-    console.log("🔥 API HIT");
-
-    // ✅ CORS
+    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -11,24 +9,15 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    // ✅ Get text
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
-
-    console.log("📝 TEXT:", text);
 
     if (!text) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    // ✅ SAFE VOICE + MODEL
     const voiceId = "21m00Tcm4TlvDq8ikWAM";
     const modelId = "eleven_monolingual_v1";
-
-    console.log("🎤 Voice:", voiceId);
-    console.log("🧠 Model:", modelId);
-
-    console.log("🔑 API KEY EXISTS:", !!process.env.ELEVENLABS_API_KEY);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -46,12 +35,9 @@ export default async function handler(req, res) {
       }
     );
 
-    console.log("📡 ElevenLabs status:", response.status);
-
-    // 🔴 SHOW REAL ERROR
+    // 🔴 RETURN REAL ERROR (IMPORTANT)
     if (!response.ok) {
       const errText = await response.text();
-      console.log("❌ ElevenLabs ERROR:", errText);
 
       return res.status(response.status).json({
         error: "ElevenLabs API error",
@@ -60,21 +46,14 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log("✅ ElevenLabs SUCCESS");
-
-    // ✅ Convert audio → base64
-    const arrayBuffer = await response.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-    console.log("🎧 Audio size:", arrayBuffer.byteLength);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const base64 = buffer.toString("base64");
 
     return res.status(200).json({
       audio: `data:audio/mpeg;base64,${base64}`
     });
 
   } catch (err) {
-    console.log("💥 SERVER ERROR:", err);
-
     return res.status(500).json({
       error: "Server crash",
       message: err.message
