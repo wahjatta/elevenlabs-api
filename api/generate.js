@@ -20,23 +20,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    const url =
-      "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB";
+    // ✅ FREE VOICE (IMPORTANT)
+    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Rachel
 
-    console.log("🎤 VOICE URL:", url);
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "audio/mpeg"
-      },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_multilingual_v2"
-      })
-    });
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": process.env.ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg"
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2"
+        })
+      }
+    );
 
     console.log("📡 ElevenLabs status:", response.status);
 
@@ -54,9 +55,8 @@ export default async function handler(req, res) {
 
     console.log("✅ ElevenLabs SUCCESS");
 
+    // ✅ Convert audio → base64
     const arrayBuffer = await response.arrayBuffer();
-    console.log("📦 Audio size:", arrayBuffer.byteLength);
-
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
     const audio = `data:audio/mpeg;base64,${base64}`;
