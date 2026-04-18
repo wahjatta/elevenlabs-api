@@ -15,8 +15,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    // ✅ FREE PLAN COMPATIBLE
-    const voiceId = "21m00Tcm4TlvDq8ikWAM";
+    // ✅ SAFE DEFAULT VOICE
+    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Rachel
     const modelId = "eleven_v3";
 
     const response = await fetch(
@@ -36,11 +36,10 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      const errText = await response.text();
-
+      const err = await response.text();
       return res.status(response.status).json({
         error: "ElevenLabs API error",
-        details: errText
+        details: err
       });
     }
 
