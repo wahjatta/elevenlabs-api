@@ -1,0 +1,8 @@
+{
+  "name": "elevenlabs-api",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^0.6.0"
+  }
+}
