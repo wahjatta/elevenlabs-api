@@ -7,10 +7,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    console.log("API KEY EXISTS:", !!process.env.ELEVENLABS_API_KEY);
-
     const response = await fetch(
-      "https://api.elevenlabs.io/v1/text-to-speech/FmBhnvP58BK0vz65OOj7",
+      "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB",
       {
         method: "POST",
         headers: {
@@ -25,13 +23,11 @@ export default async function handler(req, res) {
       }
     );
 
-    // 🔴 SHOW REAL ERROR FROM ELEVENLABS
     if (!response.ok) {
-      const errText = await response.text();
+      const err = await response.text();
       return res.status(500).json({
         error: "ElevenLabs API error",
-        status: response.status,
-        details: errText
+        details: err
       });
     }
 
@@ -42,11 +38,8 @@ export default async function handler(req, res) {
     return res.status(200).send(buffer);
 
   } catch (error) {
-    console.error("FULL ERROR:", error);
-
     return res.status(500).json({
-      error: "Server crash",
-      message: error.message
+      error: error.message
     });
   }
 }
