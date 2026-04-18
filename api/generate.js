@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     console.log("🔥 API HIT");
 
-    // CORS
+    // ✅ CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -11,6 +11,7 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
+    // ✅ Get text
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -20,8 +21,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    // ✅ FREE VOICE (IMPORTANT)
-    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Rachel
+    // ✅ FREE SAFE VOICE (Rachel)
+    const voiceId = "21m00Tcm4TlvDq8ikWAM";
+
+    // ✅ SAFER MODEL (more compatible)
+    const modelId = "eleven_v3";
+
+    console.log("🎤 Voice:", voiceId);
+    console.log("🧠 Model:", modelId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -34,22 +41,22 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           text,
-          model_id: "eleven_multilingual_v2"
+          model_id: modelId
         })
       }
     );
 
     console.log("📡 ElevenLabs status:", response.status);
 
-    // 🔴 SHOW REAL ERROR
+    // ❌ REAL ERROR FROM ELEVENLABS
     if (!response.ok) {
-      const err = await response.text();
-      console.log("❌ ElevenLabs ERROR:", err);
+      const errText = await response.text();
+      console.log("❌ ElevenLabs ERROR:", errText);
 
       return res.status(response.status).json({
         error: "ElevenLabs API error",
         status: response.status,
-        details: err
+        details: errText
       });
     }
 
