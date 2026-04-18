@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    // ✅ CORS
+    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -9,7 +9,6 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    // ✅ Get text
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -17,7 +16,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    // ✅ Call ElevenLabs
     const response = await fetch(
       "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB",
       {
@@ -34,21 +32,20 @@ export default async function handler(req, res) {
       }
     );
 
-    // 🔴 Show real error if API fails
     if (!response.ok) {
       const errText = await response.text();
       return res.status(500).json({
-        error: "ElevenLabs API error",
+        error: "ElevenLabs error",
         details: errText
       });
     }
 
-    // ✅ Convert to base64
+    // ✅ convert audio → base64
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64 = buffer.toString("base64");
 
-    // ✅ RETURN JSON (CRITICAL)
+    // ✅ RETURN JSON ONLY
     return res.status(200).json({
       audio: `data:audio/mpeg;base64,${base64}`
     });
