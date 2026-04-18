@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   try {
-    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -13,7 +12,7 @@ export default async function handler(req, res) {
       req.method === "GET" ? req.query.text : req.body?.text;
 
     if (!text) {
-      return res.status(400).json({ error: "Text is required" });
+      return res.status(400).json({ error: "Text required" });
     }
 
     const response = await fetch(
@@ -26,33 +25,31 @@ export default async function handler(req, res) {
           "Accept": "audio/mpeg"
         },
         body: JSON.stringify({
-          text: text,
+          text,
           model_id: "eleven_multilingual_v2"
         })
       }
     );
 
     if (!response.ok) {
-      const errText = await response.text();
+      const errorText = await response.text();
       return res.status(500).json({
         error: "ElevenLabs error",
-        details: errText
+        details: errorText
       });
     }
 
-    // ✅ convert audio → base64
+    // 🔥 CRITICAL FIX
     const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString("base64");
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    // ✅ RETURN JSON ONLY
     return res.status(200).json({
       audio: `data:audio/mpeg;base64,${base64}`
     });
 
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
-      error: error.message
+      error: err.message
     });
   }
 }
