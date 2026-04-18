@@ -1,33 +1,16 @@
 export default async function handler(req, res) {
   try {
-    console.log("🔥 API HIT");
-
-    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-    if (req.method === "OPTIONS") {
-      return res.status(200).end();
-    }
 
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
-
-    console.log("📝 TEXT:", text);
 
     if (!text) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    // ✅ DEFAULT SAFE VOICE (WORKS ON FREE)
-    const voiceId = "21m00Tcm4TlvDq8ikWAM";
-
-    // ✅ MOST COMPATIBLE MODEL
-    const modelId = "eleven_monolingual_v1";
-
-    console.log("🎤 Voice:", voiceId);
-    console.log("🧠 Model:", modelId);
+    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // safe voice
+    const modelId = "eleven_monolingual_v1"; // 🔥 IMPORTANT FIX
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -35,45 +18,35 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "xi-api-key": process.env.ELEVENLABS_API_KEY,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg"
         },
         body: JSON.stringify({
-          text: text,
+          text,
           model_id: modelId
         })
       }
     );
 
-    console.log("📡 ElevenLabs status:", response.status);
-
-    // 🔴 SHOW REAL ERROR
     if (!response.ok) {
-      const errText = await response.text();
-      console.log("❌ ElevenLabs ERROR:", errText);
+      const err = await response.text();
 
       return res.status(response.status).json({
         error: "ElevenLabs API error",
-        status: response.status,
-        details: errText
+        details: err
       });
     }
 
-    // ✅ Convert to base64 safely
-    const arrayBuffer = await response.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-    console.log("✅ Audio generated");
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const base64 = buffer.toString("base64");
 
     return res.status(200).json({
       audio: `data:audio/mpeg;base64,${base64}`
     });
 
   } catch (err) {
-    console.log("💥 SERVER ERROR:", err);
-
     return res.status(500).json({
-      error: "Server crash",
-      message: err.message
+      error: err.message
     });
   }
 }
