@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    // CORS
+    // ✅ CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -9,6 +9,7 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
+    // ✅ Get text
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -16,6 +17,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text is required" });
     }
 
+    // ✅ Call ElevenLabs
     const response = await fetch(
       "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB",
       {
@@ -32,27 +34,28 @@ export default async function handler(req, res) {
       }
     );
 
-    // 🔴 REAL ERROR FROM ELEVENLABS
+    // 🔴 Show real error if API fails
     if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({
+      const errText = await response.text();
+      return res.status(500).json({
         error: "ElevenLabs API error",
-        details: errorText
+        details: errText
       });
     }
 
+    // ✅ Convert to base64
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString("base64");
 
-    res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Content-Length", buffer.length);
+    // ✅ RETURN JSON (CRITICAL)
+    return res.status(200).json({
+      audio: `data:audio/mpeg;base64,${base64}`
+    });
 
-    return res.status(200).send(buffer);
-
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({
-      error: "Server crash",
-      message: err.message
+      error: error.message
     });
   }
 }
