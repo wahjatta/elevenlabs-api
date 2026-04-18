@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   try {
-    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -16,8 +15,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text required" });
     }
 
+    // ✅ FREE PLAN COMPATIBLE
     const voiceId = "21m00Tcm4TlvDq8ikWAM";
-    const modelId = "eleven_monolingual_v1";
+    const modelId = "eleven_v3";
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -35,13 +35,11 @@ export default async function handler(req, res) {
       }
     );
 
-    // 🔴 RETURN REAL ERROR (IMPORTANT)
     if (!response.ok) {
       const errText = await response.text();
 
       return res.status(response.status).json({
         error: "ElevenLabs API error",
-        status: response.status,
         details: errText
       });
     }
@@ -55,8 +53,7 @@ export default async function handler(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      error: "Server crash",
-      message: err.message
+      error: err.message
     });
   }
 }
