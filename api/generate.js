@@ -1,12 +1,6 @@
 export default async function handler(req, res) {
   try {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-    if (req.method === "OPTIONS") {
-      return res.status(200).end();
-    }
 
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
@@ -31,15 +25,17 @@ export default async function handler(req, res) {
       }
     );
 
+    // 🔴 SHOW REAL ERROR
     if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(500).json({
-        error: "ElevenLabs error",
-        details: errorText
+      const err = await response.text();
+
+      return res.status(response.status).json({
+        error: "ElevenLabs API error",
+        status: response.status,
+        details: err
       });
     }
 
-    // 🔥 CRITICAL FIX
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
@@ -49,7 +45,8 @@ export default async function handler(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      error: err.message
+      error: "Server crash",
+      message: err.message
     });
   }
 }
