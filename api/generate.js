@@ -1,15 +1,14 @@
 export default async function handler(req, res) {
-
-  // ✅ CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
   try {
+    // CORS
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -33,11 +32,12 @@ export default async function handler(req, res) {
       }
     );
 
+    // 🔴 REAL ERROR FROM ELEVENLABS
     if (!response.ok) {
-      const err = await response.text();
-      return res.status(500).json({
+      const errorText = await response.text();
+      return res.status(response.status).json({
         error: "ElevenLabs API error",
-        details: err
+        details: errorText
       });
     }
 
@@ -45,11 +45,14 @@ export default async function handler(req, res) {
     const buffer = Buffer.from(arrayBuffer);
 
     res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Length", buffer.length);
+
     return res.status(200).send(buffer);
 
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
-      error: error.message
+      error: "Server crash",
+      message: err.message
     });
   }
 }
