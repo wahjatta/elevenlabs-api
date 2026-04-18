@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     console.log("🔥 API HIT");
 
-    // ✅ CORS
+    // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    // ✅ Get text
     const text =
       req.method === "GET" ? req.query.text : req.body?.text;
 
@@ -21,11 +20,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text required" });
     }
 
-    // ✅ FREE SAFE VOICE (Rachel)
+    // ✅ DEFAULT SAFE VOICE (WORKS ON FREE)
     const voiceId = "21m00Tcm4TlvDq8ikWAM";
 
-    // ✅ SAFER MODEL (more compatible)
-    const modelId = "eleven_v3";
+    // ✅ MOST COMPATIBLE MODEL
+    const modelId = "eleven_monolingual_v1";
 
     console.log("🎤 Voice:", voiceId);
     console.log("🧠 Model:", modelId);
@@ -36,11 +35,10 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "xi-api-key": process.env.ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-          "Accept": "audio/mpeg"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          text,
+          text: text,
           model_id: modelId
         })
       }
@@ -48,7 +46,7 @@ export default async function handler(req, res) {
 
     console.log("📡 ElevenLabs status:", response.status);
 
-    // ❌ REAL ERROR FROM ELEVENLABS
+    // 🔴 SHOW REAL ERROR
     if (!response.ok) {
       const errText = await response.text();
       console.log("❌ ElevenLabs ERROR:", errText);
@@ -60,17 +58,15 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log("✅ ElevenLabs SUCCESS");
-
-    // ✅ Convert audio → base64
+    // ✅ Convert to base64 safely
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    const audio = `data:audio/mpeg;base64,${base64}`;
+    console.log("✅ Audio generated");
 
-    console.log("🎧 Returning JSON");
-
-    return res.status(200).json({ audio });
+    return res.status(200).json({
+      audio: `data:audio/mpeg;base64,${base64}`
+    });
 
   } catch (err) {
     console.log("💥 SERVER ERROR:", err);
